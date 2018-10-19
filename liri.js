@@ -6,6 +6,8 @@ const moment = require('moment');
 const spot = require('./keys').spotify;
 const bit = require('./keys').bandsintown;
 const omdb = require('./keys').omdb;
+const lineBreaker =    "-------------------------------";
+const commandBreaker = "*******************************";
 
 function callAction(command = process.argv[2], item = process.argv[3]) {
     switch (command.toLowerCase()) {
@@ -25,6 +27,7 @@ function callAction(command = process.argv[2], item = process.argv[3]) {
 }
 
 function doWhatItSays() {
+    fs.appendFileSync("log.txt", `${commandBreaker}\ndo-what-it-says\n`);
     //Read in the file, get rid of the quotes, split on the ,
     let data = fs.readFileSync("random.txt", "utf8");
     //Split the data from the file wherever there is a new line so you can have multiple commands in the file
@@ -47,12 +50,16 @@ function findConcerts(artist) {
         }
 
         let obj = JSON.parse(body);
+        let str = "";
         for(let i = 0; i < obj.length; i++) {
-            console.log("*******************************");
-            console.log(`Venue: ${obj[i].venue.name}`);
-            console.log(`Venue Location: ${obj[i].venue.city}, ${obj[i].venue.country}`);
-            console.log("Date: " + moment(obj[i].datetime).format('MM/DD/YYYY'));
+            str += `${lineBreaker}\n`;
+            str += `Venue: ${obj[i].venue.name}\n`;
+            str += `Venue Location: ${obj[i].venue.city}, ${obj[i].venue.country}\n`;
+            str += "Date: " + moment(obj[i].datetime).format('MM/DD/YYYY') + "\n";
         }
+        console.log(str);
+        let com = `${commandBreaker}\nconcert-this ${artist}\n`;
+        fs.appendFileSync("log.txt", com + str);
     });
 }
 
@@ -66,14 +73,17 @@ function spotifySong(song = "The Sign") {
         if (error) {
             return console.log(error);
         }
-        console.log("*******************************");
-        console.log(`Artist(s): ${data.tracks.items[0].artists[0].name}`);
+        let str = `${lineBreaker}\n`;
+        str += `Artist(s): ${data.tracks.items[0].artists[0].name}\n`;
         for(let i = 1; i < data.tracks.items[0].artists.length; i++) {
-            console.log(`       ${data.tracks.items[0].artists[i].name}`)
+            str += `       ${data.tracks.items[0].artists[i].name}\n`;
         }
-        console.log(`Song Name: ${data.tracks.items[0].name}`);
-        console.log(`Preview Link: ${data.tracks.items[0].preview_url}`);
-        console.log(`Album: ${data.tracks.items[0].album.name}`);
+        str += `Song Name: ${data.tracks.items[0].name}\n`;
+        str += `Preview Link: ${data.tracks.items[0].preview_url}\n`;
+        str += `Album: ${data.tracks.items[0].album.name}\n`;
+        console.log(str);
+        let com = `${commandBreaker}\nspotify-this-song ${song}\n`;
+        fs.appendFileSync("log.txt", com + str);
     });
 }
 
@@ -82,17 +92,20 @@ function findMovie(movie = "Mr. Nobody") {
         if (error) {
             return console.log(error);
         }
-        console.log("*******************************");
+        let str = `${lineBreaker}\n`;
         let obj = JSON.parse(body);
-        console.log(`Title: ${obj.Title}`);
-        console.log(`Year of Release: ${obj.Year}`);
+        str +=`Title: ${obj.Title}\n`;
+        str += `Year of Release: ${obj.Year}\n`;
         for(let i = 0; i < obj.Ratings.length - 1; i++) {
-            console.log(`${obj.Ratings[i].Source} Rating: ${obj.Ratings[i].Value}`);
+            str += `${obj.Ratings[i].Source} Rating: ${obj.Ratings[i].Value}\n`;
         }
-        console.log(`Country(s): ${obj.Country}`);
-        console.log(`Language(s): ${obj.Language}`);
-        console.log(`Plot: ${obj.Plot}`);
-        console.log(`Actors: ${obj.Actors}`);
+        str += `Country(s): ${obj.Country}\n`;
+        str += `Language(s): ${obj.Language}\n`;
+        str += `Plot: ${obj.Plot}\n`;
+        str += `Actors: ${obj.Actors}\n`;
+        console.log(str);
+        let com = `${commandBreaker}\nmovie-this ${movie}\n`;
+        fs.appendFileSync("log.txt", com + str);
     });
 }
 
