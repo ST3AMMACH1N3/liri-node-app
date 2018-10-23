@@ -27,7 +27,7 @@ function callAction(command = process.argv[2], item = process.argv[3]) {
 }
 
 function doWhatItSays() {
-    fs.appendFile("log.txt", `${commandBreaker}\ndo-what-it-says\n`);
+    // fs.appendFile("log.txt", `${commandBreaker}\ndo-what-it-says\n`);
     //Read in the file, get rid of the quotes, split on the ,
     fs.readFile("random.txt", "utf8", (err, data) => {
         if (err) throw err;
@@ -72,15 +72,16 @@ function findMovie(movie = "Mr. Nobody") {
         if (error) throw error;
         let str = `${lineBreaker}\n`;
         let obj = JSON.parse(body);
-        str +=`Title: ${obj.Title}\n`;
-        str += `Year of Release: ${obj.Year}\n`;
-        for(let i = 0; i < obj.Ratings.length - 1; i++) {
-            str += `${obj.Ratings[i].Source} Rating: ${obj.Ratings[i].Value}\n`;
+        let infoWanted = ["Title", "Ratings", "Country", "Language", "Plot", "Actors"];
+        for (let i = 0; i < infoWanted.length; i++) {
+            if (infoWanted[i] !== "Ratings") {
+                str += `${infoWanted[i]}: ${obj[infoWanted[i]]}\n`
+            } else {
+                for (let j = 0; j < obj.Ratings.length; j++) {
+                    str += `${obj.Ratings[j].Source} Rating: ${obj.Ratings[j].Value}\n`;
+                }
+            }
         }
-        str += `Country(s): ${obj.Country}\n`;
-        str += `Language(s): ${obj.Language}\n`;
-        str += `Plot: ${obj.Plot}\n`;
-        str += `Actors: ${obj.Actors}\n`;
         console.log(str);
         let com = `${commandBreaker}\nmovie-this ${movie}\n`;
         fs.appendFile("log.txt", com + str, (err) => {
@@ -95,16 +96,17 @@ function spotifySong(song = "The Sign") {
         secret: spot.secret
     });
 
-    spotify.search({type: 'track', query: song}, (error, data) => {
+    spotify.search({type: 'track', query: song, limit: 1}, (error, data) => {
         if (error) throw error;
         let str = `${lineBreaker}\n`;
-        str += `Artist(s): ${data.tracks.items[0].artists[0].name}\n`;
-        for(let i = 1; i < data.tracks.items[0].artists.length; i++) {
-            str += `       ${data.tracks.items[0].artists[i].name}\n`;
+        let item = data.tracks.items[0];
+        str += `Artist(s): ${item.artists[0].name}\n`;
+        for(let i = 1; i < item.artists.length; i++) {
+            str += `       ${item.artists[i].name}\n`;
         }
-        str += `Song Name: ${data.tracks.items[0].name}\n`;
-        str += `Preview Link: ${data.tracks.items[0].preview_url}\n`;
-        str += `Album: ${data.tracks.items[0].album.name}\n`;
+        str += `Song Name: ${item.name}\n`;
+        str += `Preview Link: ${item.preview_url}\n`;
+        str += `Album: ${item.album.name}\n`;
         console.log(str);
         let com = `${commandBreaker}\nspotify-this-song ${song}\n`;
         fs.appendFile("log.txt", com + str, (err) => {
